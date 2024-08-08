@@ -1,19 +1,20 @@
-# Utiliza la imagen oficial de Node.js versión 21.7.1
+# Usa una imagen oficial de Node.js como imagen base
 FROM node:21.7.1
 
-# Crear directorio de la aplicación
-WORKDIR /usr/src/index.js
+# Establece el directorio de trabajo
+WORKDIR /usr/src/index
 
-# Instalar dependencias de la aplicación
+# Copia el package.json y package-lock.json
 COPY package*.json ./
 
+# Instala las dependencias
 RUN npm install
 
-# Copiar el código de la aplicación
+# Copia el resto de la aplicación
 COPY . .
 
-# Exponer el puerto que usará la aplicación
-EXPOSE 30
+# Expone el puerto que usa la aplicación
+EXPOSE 3000
 
-# Comando para correr la aplicación
-CMD ["npm", "start"]
+# Comando para ejecutar la aplicación
+CMD [ "npm", "start" ]
