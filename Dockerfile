@@ -2,7 +2,7 @@
 FROM node:21.7.1
 
 # Establece el directorio de trabajo
-WORKDIR /usr/src/index
+WORKDIR /src/index
 
 # Copia el package.json y package-lock.json
 COPY package*.json ./
