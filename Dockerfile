@@ -2,7 +2,7 @@
 FROM node:21.7.1
 
 # Crear directorio de la aplicación
-WORKDIR /usr/src/index
+WORKDIR /usr/src/index.js
 
 # Instalar dependencias de la aplicación
 COPY package*.json ./
@@ -13,7 +13,7 @@ RUN npm install
 COPY . .
 
 # Exponer el puerto que usará la aplicación
-EXPOSE 3000
+EXPOSE 30
 
 # Comando para correr la aplicación
 CMD ["npm", "start"]
