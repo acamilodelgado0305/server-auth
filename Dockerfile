@@ -2,7 +2,7 @@
 FROM node:21.7.1
 
 # Crear directorio de la aplicación
-WORKDIR /usr/src/index
+WORKDIR /src/index.js
 
 # Instalar dependencias de la aplicación
 COPY package*.json ./
