@@ -7,14 +7,18 @@ import {
   updateUser,
   deleteUser,
 } from "../controllers/index.controller.js";
+import { authenticateToken } from "../middlewares/authenticateToken.js";
 
 const router = Router();
 
-router.get("/users", getUsers);
-router.get("/users/:id", getUserById);
+// Rutas públicas
+router.get("/users", authenticateToken, getUsers);
+router.get("/users/:id", authenticateToken, getUserById);
 router.post("/register", createUser);
 router.post("/login", loginUser);
-router.put("/users/:id", updateUser);
-router.delete("/users/:id", deleteUser);
+
+// Rutas protegidas por el middleware de autenticación
+router.put("/users/:id", authenticateToken, updateUser);
+router.delete("/users/:id", authenticateToken, deleteUser);
 
 export default router;

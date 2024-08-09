@@ -4,8 +4,15 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config.js";
 
 export const getUsers = async (req, res) => {
+  const { page = 1, limit = 10, search = '' } = req.query;
+  const offset = (page - 1) * limit;
+
   try {
-    const response = await pool.query("SELECT * FROM users ORDER BY id ASC");
+    const response = await pool.query(
+      "SELECT * FROM users WHERE username ILIKE $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
+      [`%${search}%`, parseInt(limit), parseInt(offset)]
+    );
+
     res.status(200).json(response.rows);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -24,7 +31,7 @@ export const getUserById = async (req, res) => {
 
 export const createUser = async (req, res) => {
   try {
-    console.log("Request body:", req.body); // Agregar un log para depuración
+    console.log("Request body:", req.body);
 
     const { username, email, password } = req.body;
 
@@ -42,7 +49,7 @@ export const createUser = async (req, res) => {
 
     res.status(201).json(rows[0]);
   } catch (error) {
-    console.error("Error creating user:", error); // Agregar un log para errores
+    console.error("Error creating user:", error);
     res.status(500).json({ error: error.message });
   }
 };
