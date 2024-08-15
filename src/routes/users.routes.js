@@ -6,6 +6,7 @@ import {
   loginUser,
   updateUser,
   deleteUser,
+  updateUserInfo
 } from "../controllers/index.controller.js";
 import { authenticateToken } from "../middlewares/authenticateToken.js";
 
@@ -19,6 +20,7 @@ router.post("/login", loginUser);
 
 // Rutas protegidas por el middleware de autenticación
 router.put("/users/:id", authenticateToken, updateUser);
+router.put('/update-info/:id', authenticateToken, updateUserInfo);
 router.delete("/users/:id", authenticateToken, deleteUser);
 
 export default router;
