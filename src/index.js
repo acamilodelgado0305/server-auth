@@ -10,7 +10,7 @@ app.use(express.json());
 
 // Configura CORS antes de tus rutas
 app.use(cors({
-    origin: 'http://localhost:5173, https://server-auth.app.la-net.co/api',
+    origin: 'http://localhost:5173, https://lanet.app.la-net.co',
     credentials: true,
 }));
 
