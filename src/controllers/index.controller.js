@@ -57,18 +57,15 @@ export const createUser = async (req, res) => {
 export const updateUserInfo = async (req, res) => {
   try {
     const { id } = req.params;
-    const { phone, address } = req.body;
+    const { phone, address, profilepictureurl } = req.body;
 
     // Verificar si al menos uno de los campos está presente
-    if (!phone && !address) {
+    if (!phone && !address && !profilepictureurl) {
       return res.status(400).json({ message: "At least one field is required" });
     }
 
     // Verificar si el usuario existe
-    const userExists = await pool.query(
-      "SELECT * FROM users WHERE id = $1",
-      [id]
-    );
+    const userExists = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
     if (userExists.rows.length === 0) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -77,9 +74,9 @@ export const updateUserInfo = async (req, res) => {
     const updates = [];
     if (phone) updates.push(`phone = '${phone}'`);
     if (address) updates.push(`address = '${address}'`);
+    if (profilepictureurl) updates.push(`profilepictureurl = '${profilepictureurl}'`);
 
-    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $1 RETURNING id, email, phone, address`;
-
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $1 RETURNING id, email, phone, address, profilepictureurl`;
     const { rows } = await pool.query(query, [id]);
 
     res.status(200).json(rows[0]);
