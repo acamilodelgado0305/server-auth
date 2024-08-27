@@ -1,4 +1,5 @@
 import { Router } from "express";
+import multer from 'multer';
 import {
   getUsers,
   getUserById,
@@ -8,15 +9,19 @@ import {
   deleteUser,
   updateUserInfo
 } from "../controllers/index.controller.js";
+import { uploadImageToCloudinary } from "../controllers/image.controller.js";
 import { authenticateToken } from "../middlewares/authenticateToken.js";
 
 const router = Router();
+
+const upload = multer({ dest: 'uploads/' });
 
 // Rutas públicas
 router.get("/users", authenticateToken, getUsers);
 router.get("/users/:id", authenticateToken, getUserById);
 router.post("/register", createUser);
 router.post("/login", loginUser);
+router.post('/upload-image', upload.single('image'), uploadImageToCloudinary);
 
 // Rutas protegidas por el middleware de autenticación
 router.put("/users/:id", authenticateToken, updateUser);
