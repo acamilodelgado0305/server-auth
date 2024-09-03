@@ -1,7 +1,31 @@
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+import path from 'path';
+import fs from 'fs';
 import { pool } from "../db.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config.js";
+import nodemailer from 'nodemailer';
+import dotenv from 'dotenv';
+
+dotenv.config();
+
+// Obtener el directorio actual del archivo
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+// Función para cargar y reemplazar variables en la plantilla
+const renderTemplate = (templatePath, variables) => {
+  let template = fs.readFileSync(templatePath, 'utf-8');
+  for (const [key, value] of Object.entries(variables)) {
+    const regex = new RegExp(`{{${key}}}`, 'g');
+    template = template.replace(regex, value);
+  }
+  return template;
+};
+
+
 
 export const getUsers = async (req, res) => {
   const { page = 1, limit = 10, search = '' } = req.query;
@@ -46,6 +70,55 @@ export const createUser = async (req, res) => {
       "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
       [username, email, hashedPassword]
     );
+
+    // Configurar transporte de correo
+    const transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    // Cargar la plantilla HTML
+    const emailTemplatePath = path.join(__dirname, '../templates/welcomeEmailTemplate.html'); // Ajusta la ruta según sea necesario
+    const emailHtml = renderTemplate(emailTemplatePath, { username, email });
+
+    // Opciones de correo para el usuario
+    const mailOptionsUser = {
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: 'Registro Exitoso',
+      html: emailHtml,
+    };
+    // Cargar la plantilla HTML para el administrador
+    const adminEmailTemplatePath = path.join(__dirname, '../templates/adminNotificationTemplate.html');
+    const adminEmailHtml = renderTemplate(adminEmailTemplatePath, { username, email });
+
+
+    // Opciones de correo para el administrador
+    const mailOptionsAdmin = {
+      from: process.env.EMAIL_USER,
+      to: process.env.ADMIN_EMAIL, // Correo del administrador
+      subject: 'Nuevo Usuario Registrado',
+      html: adminEmailHtml,
+    };
+
+    // Enviar correo al usuario
+    transporter.sendMail(mailOptionsUser, (error, info) => {
+      if (error) {
+        return console.error('Error al enviar el correo al usuario:', error);
+      }
+      console.log('Correo enviado al usuario: ' + info.response);
+    });
+
+    // Enviar correo al administrador
+    transporter.sendMail(mailOptionsAdmin, (error, info) => {
+      if (error) {
+        return console.error('Error al enviar el correo al administrador:', error);
+      }
+      console.log('Correo enviado al administrador: ' + info.response);
+    });
 
     res.status(201).json(rows[0]);
   } catch (error) {
