@@ -57,18 +57,19 @@ export const createUser = async (req, res) => {
   try {
     console.log("Request body:", req.body);
 
-    const { username, email, password } = req.body;
+    const { username, email, password, role } = req.body;
 
     // Verificar si los campos requeridos están presentes
-    if (!username || !email || !password) {
+    if (!username || !email || !password || !role) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Insertar el nuevo usuario con el campo role
     const { rows } = await pool.query(
-      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
-      [username, email, hashedPassword]
+      "INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *",
+      [username, email, hashedPassword, role]
     );
 
     // Configurar transporte de correo
@@ -80,8 +81,8 @@ export const createUser = async (req, res) => {
       },
     });
 
-    // Cargar la plantilla HTML
-    const emailTemplatePath = path.join(__dirname, '../templates/welcomeEmailTemplate.html'); // Ajusta la ruta según sea necesario
+    // Cargar la plantilla HTML para el usuario
+    const emailTemplatePath = path.join(__dirname, '../templates/welcomeEmailTemplate.html');
     const emailHtml = renderTemplate(emailTemplatePath, { username, email });
 
     // Opciones de correo para el usuario
@@ -91,10 +92,10 @@ export const createUser = async (req, res) => {
       subject: 'Registro Exitoso',
       html: emailHtml,
     };
+
     // Cargar la plantilla HTML para el administrador
     const adminEmailTemplatePath = path.join(__dirname, '../templates/adminNotificationTemplate.html');
     const adminEmailHtml = renderTemplate(adminEmailTemplatePath, { username, email });
-
 
     // Opciones de correo para el administrador
     const mailOptionsAdmin = {
@@ -126,6 +127,7 @@ export const createUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
 
 export const updateUserInfo = async (req, res) => {
   try {
