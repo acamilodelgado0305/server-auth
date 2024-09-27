@@ -191,11 +191,18 @@ export const loginUser = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { username, email } = req.body;
+    const { username, email, role } = req.body;
 
+    // Verificar si el role está presente y válido (opcional)
+    const validRoles = ["superadmin", "admin", "user"];
+    if (role && !validRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role provided" });
+    }
+
+    // Actualizar los campos proporcionados
     const { rows } = await pool.query(
-      "UPDATE users SET username = $1, email = $2 WHERE id = $3 RETURNING *",
-      [username, email, id]
+      "UPDATE users SET username = $1, email = $2, role = $3 WHERE id = $4 RETURNING *",
+      [username, email, role, id]
     );
 
     res.json(rows[0]);
@@ -203,7 +210,6 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 export const deleteUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
