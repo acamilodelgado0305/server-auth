@@ -219,25 +219,62 @@ export const getToken = async (req, res) => {
 export const updateUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { username, email, role } = req.body;
+    const { username, email, role, password } = req.body;
 
-    // Verificar si el role está presente y válido (opcional)
+    // Verificar si el role está presente y es válido (opcional)
     const validRoles = ["superadmin", "admin", "user"];
     if (role && !validRoles.includes(role)) {
       return res.status(400).json({ message: "Invalid role provided" });
     }
 
-    // Actualizar los campos proporcionados
-    const { rows } = await pool.query(
-      "UPDATE users SET username = $1, email = $2, role = $3 WHERE id = $4 RETURNING *",
-      [username, email, role, id]
-    );
+    // Verificar si el usuario existe
+    const user = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
+    if (user.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
 
-    res.json(rows[0]);
+    // Crear una lista de actualizaciones dinámicas
+    const updates = [];
+    const values = [];
+
+    if (username) {
+      updates.push(`username = $${updates.length + 1}`);
+      values.push(username);
+    }
+
+    if (email) {
+      updates.push(`email = $${updates.length + 1}`);
+      values.push(email);
+    }
+
+    if (role) {
+      updates.push(`role = $${updates.length + 1}`);
+      values.push(role);
+    }
+
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      updates.push(`password = $${updates.length + 1}`);
+      values.push(hashedPassword);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({ message: "No fields provided for update" });
+    }
+
+    values.push(id);
+
+    // Ejecutar la consulta de actualización solo con los campos enviados
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $${updates.length + 1} RETURNING id, username, email, role, phone, address, profilepictureurl`;
+    const { rows } = await pool.query(query, values);
+
+    res.status(200).json(rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
+
+
 export const deleteUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
