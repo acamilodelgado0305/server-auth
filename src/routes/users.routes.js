@@ -22,7 +22,7 @@ router.get("/users", authenticateToken, getUsers);
 router.get("/users/:id", authenticateToken, getUserById);
 router.post("/register", createUser);
 router.post("/login", loginUser);
-router.get("/users/:id/token", authenticateToken, getToken);
+router.get("/users/:id/token", getToken);
 router.post('/upload-image', upload.single('image'), uploadImageToCloudinary);
 
 // Rutas protegidas por el middleware de autenticación
