@@ -7,7 +7,8 @@ import {
   loginUser,
   updateUser,
   deleteUser,
-  updateUserInfo
+  updateUserInfo,
+  getToken
 } from "../controllers/index.controller.js";
 import { uploadImageToCloudinary } from "../controllers/image.controller.js";
 import { authenticateToken } from "../middlewares/authenticateToken.js";
@@ -21,6 +22,7 @@ router.get("/users", authenticateToken, getUsers);
 router.get("/users/:id", authenticateToken, getUserById);
 router.post("/register", createUser);
 router.post("/login", loginUser);
+router.get("/users/:id/token", authenticateToken, getToken);
 router.post('/upload-image', upload.single('image'), uploadImageToCloudinary);
 
 // Rutas protegidas por el middleware de autenticación

@@ -179,10 +179,32 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" }  // Puedes ajustar la expiración según necesites
+    );
+
+    // Guardar el token en la base de datos
+    await pool.query(
+      "UPDATE users SET token = $1 WHERE id = $2",
+      [token, user.id]
     );
 
     res.json({ token });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const getToken = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Buscar el token en la base de datos
+    const { rows } = await pool.query("SELECT token FROM users WHERE id = $1", [userId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Token not found" });
+    }
+
+    res.json({ token: rows[0].token });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
