@@ -33,7 +33,7 @@ export const getUsers = async (req, res) => {
 
   try {
     const response = await pool.query(
-      "SELECT * FROM users WHERE username ILIKE $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
+      "SELECT id, username, email, address, phone, profilepictureurl FROM users WHERE username ILIKE $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
       [`%${search}%`, parseInt(limit), parseInt(offset)]
     );
 
@@ -46,8 +46,14 @@ export const getUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const response = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
-    res.json(response.rows);
+    const response = await pool.query(
+      "SELECT id, username, email, address, phone, profilepictureurl FROM users WHERE id = $1",
+      [id]
+    );
+    if (response.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(response.rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
