@@ -33,7 +33,7 @@ export const getUsers = async (req, res) => {
 
   try {
     const response = await pool.query(
-      "SELECT * FROM users WHERE username ILIKE $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
+      "SELECT id, username, email, address, phone, profilepictureurl FROM users WHERE username ILIKE $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
       [`%${search}%`, parseInt(limit), parseInt(offset)]
     );
 
@@ -46,8 +46,14 @@ export const getUsers = async (req, res) => {
 export const getUserById = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const response = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
-    res.json(response.rows);
+    const response = await pool.query(
+      "SELECT id, username, email, address, phone, profilepictureurl FROM users WHERE id = $1",
+      [id]
+    );
+    if (response.rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.json(response.rows[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -179,7 +185,13 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: "1h" }
+      { expiresIn: "1h" }  // Puedes ajustar la expiración según necesites
+    );
+
+    // Guardar el token en la base de datos
+    await pool.query(
+      "UPDATE users SET token = $1 WHERE id = $2",
+      [token, user.id]
     );
 
     res.json({ token });
@@ -188,14 +200,37 @@ export const loginUser = async (req, res) => {
   }
 };
 
+export const getToken = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Buscar el token en la base de datos
+    const { rows } = await pool.query("SELECT token FROM users WHERE id = $1", [userId]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Token not found" });
+    }
+
+    res.json({ token: rows[0].token });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
 export const updateUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
-    const { username, email } = req.body;
+    const { username, email, role } = req.body;
 
+    // Verificar si el role está presente y válido (opcional)
+    const validRoles = ["superadmin", "admin", "user"];
+    if (role && !validRoles.includes(role)) {
+      return res.status(400).json({ message: "Invalid role provided" });
+    }
+
+    // Actualizar los campos proporcionados
     const { rows } = await pool.query(
-      "UPDATE users SET username = $1, email = $2 WHERE id = $3 RETURNING *",
-      [username, email, id]
+      "UPDATE users SET username = $1, email = $2, role = $3 WHERE id = $4 RETURNING *",
+      [username, email, role, id]
     );
 
     res.json(rows[0]);
@@ -203,7 +238,6 @@ export const updateUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
-
 export const deleteUser = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
