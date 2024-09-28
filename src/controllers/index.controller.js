@@ -202,10 +202,10 @@ export const loginUser = async (req, res) => {
 
 export const getToken = async (req, res) => {
   try {
-    const { userId } = req.params;
+    const { id } = req.params;  // Cambiar userId por id
 
     // Buscar el token en la base de datos
-    const { rows } = await pool.query("SELECT token FROM users WHERE id = $1", [userId]);
+    const { rows } = await pool.query("SELECT token FROM users WHERE id = $1", [id]);
     if (rows.length === 0) {
       return res.status(404).json({ message: "Token not found" });
     }
