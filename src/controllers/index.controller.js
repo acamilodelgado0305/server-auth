@@ -33,7 +33,7 @@ export const getUsers = async (req, res) => {
 
   try {
     const response = await pool.query(
-      "SELECT id, username, email, address, phone, profilepictureurl FROM users WHERE username ILIKE $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
+      "SELECT id, username, email, address, phone, role, profilepictureurl FROM users WHERE username ILIKE $1 ORDER BY id ASC LIMIT $2 OFFSET $3",
       [`%${search}%`, parseInt(limit), parseInt(offset)]
     );
 
