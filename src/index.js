@@ -32,7 +32,7 @@ const server = app.listen(PORT, () => {
 });
 
 // Crear una instancia de Socket.io y asociarla al servidor
-const io = new Server(server, {
+export const io = new Server(server, {
     cors: {
         origin: ['http://localhost:5173', 'https://ispsuite.app.la-net.co'],
         methods: ['GET', 'POST'],

@@ -8,7 +8,7 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config.js";
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
-
+import { io } from '../index.js';
 
 dotenv.config();
 
