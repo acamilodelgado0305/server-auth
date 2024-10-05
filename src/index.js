@@ -4,6 +4,7 @@ import router from './routes/users.routes.js';
 import cors from 'cors'; // Importa cors de manera consistente con ES6
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { Server } from 'socket.io'; // Importa Socket.io
 
 dotenv.config();
 
@@ -26,6 +27,30 @@ app.use(express.static(join(__dirname, 'public')));
 app.use('/api', router);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+});
+
+// Crear una instancia de Socket.io y asociarla al servidor
+const io = new Server(server, {
+    cors: {
+        origin: ['http://localhost:5173', 'https://ispsuite.app.la-net.co'],
+        methods: ['GET', 'POST'],
+        credentials: true,
+    }
+});
+
+// Escuchar conexiones de Socket.io
+io.on('connection', (socket) => {
+    console.log('Nuevo cliente conectado:', socket.id);
+
+    // Aquí puedes manejar eventos de Socket.io
+    socket.on('disconnect', () => {
+        console.log('Cliente desconectado:', socket.id);
+    });
+
+    // Ejemplo de un evento que envía un mensaje al cliente
+    socket.emit('notification', 'Bienvenido a la aplicación!');
+
+    // Puedes agregar más eventos según tus necesidades
 });
