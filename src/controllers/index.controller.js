@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "../config.js";
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
+import { io } from '../index.js';
 
 dotenv.config();
 
@@ -65,14 +66,12 @@ export const createUser = async (req, res) => {
 
     const { username, email, password, role } = req.body;
 
-    // Verificar si los campos requeridos están presentes
     if (!username || !email || !password || !role) {
       return res.status(400).json({ message: "Missing required fields" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Insertar el nuevo usuario con el campo role
     const { rows } = await pool.query(
       "INSERT INTO users (username, email, password, role) VALUES ($1, $2, $3, $4) RETURNING *",
       [username, email, hashedPassword, role]
@@ -87,11 +86,9 @@ export const createUser = async (req, res) => {
       },
     });
 
-    // Cargar la plantilla HTML para el usuario
     const emailTemplatePath = path.join(__dirname, '../templates/welcomeEmailTemplate.html');
     const emailHtml = renderTemplate(emailTemplatePath, { username, email });
 
-    // Opciones de correo para el usuario
     const mailOptionsUser = {
       from: process.env.EMAIL_USER,
       to: email,
@@ -99,33 +96,22 @@ export const createUser = async (req, res) => {
       html: emailHtml,
     };
 
-    // Cargar la plantilla HTML para el administrador
     const adminEmailTemplatePath = path.join(__dirname, '../templates/adminNotificationTemplate.html');
     const adminEmailHtml = renderTemplate(adminEmailTemplatePath, { username, email });
 
-    // Opciones de correo para el administrador
     const mailOptionsAdmin = {
       from: process.env.EMAIL_USER,
-      to: process.env.ADMIN_EMAIL, // Correo del administrador
+      to: process.env.ADMIN_EMAIL,
       subject: 'Nuevo Usuario Registrado',
       html: adminEmailHtml,
     };
 
-    // Enviar correo al usuario
-    transporter.sendMail(mailOptionsUser, (error, info) => {
-      if (error) {
-        return console.error('Error al enviar el correo al usuario:', error);
-      }
-      console.log('Correo enviado al usuario: ' + info.response);
-    });
+    // Enviar correos
+    await transporter.sendMail(mailOptionsUser);
+    await transporter.sendMail(mailOptionsAdmin);
 
-    // Enviar correo al administrador
-    transporter.sendMail(mailOptionsAdmin, (error, info) => {
-      if (error) {
-        return console.error('Error al enviar el correo al administrador:', error);
-      }
-      console.log('Correo enviado al administrador: ' + info.response);
-    });
+    // Emitir un evento a través de Socket.io para notificar al frontend
+    io.emit('userRegistered', { username, email });
 
     res.status(201).json(rows[0]);
   } catch (error) {
