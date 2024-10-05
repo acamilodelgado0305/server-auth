@@ -9,6 +9,7 @@ import { JWT_SECRET } from "../config.js";
 import nodemailer from 'nodemailer';
 import dotenv from 'dotenv';
 
+
 dotenv.config();
 
 // Obtener el directorio actual del archivo
@@ -108,6 +109,9 @@ export const createUser = async (req, res) => {
     // Enviar correos
     await transporter.sendMail(mailOptionsUser);
     await transporter.sendMail(mailOptionsAdmin);
+
+    // Emitir un evento a través de Socket.io para notificar al frontend
+    io.emit('userRegistered', { username, email });
 
     res.status(201).json(rows[0]);
   } catch (error) {

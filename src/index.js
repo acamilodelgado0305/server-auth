@@ -50,7 +50,7 @@ io.on('connection', (socket) => {
     });
 
     // Ejemplo de un evento que envía un mensaje al cliente
-    socket.emit('notification', 'Bienvenido a la aplicación!');
+    socket.emit('notification', 'Bienvenido a la aplicación..!');
 
     // Puedes agregar más eventos según tus necesidades
 });
