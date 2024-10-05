@@ -49,8 +49,8 @@ io.on('connection', (socket) => {
         console.log('Cliente desconectado:', socket.id);
     });
 
-    // Ejemplo de un evento que envía un mensaje al cliente
-    socket.emit('notification', 'Bienvenido a la aplicación..!');
+    // Emitir una notificación de bienvenida al usuario cuando se conecta
+    socket.emit('notification', { message: 'Bienvenido a la aplicación..!' });
 
     // Puedes agregar más eventos según tus necesidades
 });
