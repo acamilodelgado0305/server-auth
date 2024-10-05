@@ -111,7 +111,7 @@ export const createUser = async (req, res) => {
     await transporter.sendMail(mailOptionsAdmin);
 
     // Emitir un evento a través de Socket.io para notificar al frontend
-    io.emit('userRegistered', { username, email });
+    io.emit('userRegistered', { message: `Nuevo usuario registrado: ${username}`, email });
 
     res.status(201).json(rows[0]);
   } catch (error) {
