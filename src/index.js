@@ -17,7 +17,7 @@ const __dirname = dirname(__filename);
 
 // Configura CORS antes de tus rutas
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://ispsuite.app.la-net.co'],
+    origin: ['http://localhost:5173', 'https://ispsuite.app.la-net.co', 'https://ispsuitedev.app.la-net.co'],
     credentials: true,
 }));
 
