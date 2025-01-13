@@ -124,10 +124,10 @@ export const createUser = async (req, res) => {
 export const updateUserInfo = async (req, res) => {
   try {
     const { id } = req.params;
-    const { phone, address, profilepictureurl } = req.body;
+    const { phone, address, username } = req.body;
 
     // Verificar si al menos uno de los campos está presente
-    if (!phone && !address && !profilepictureurl) {
+    if (!phone && !address && !username) {
       return res.status(400).json({ message: "At least one field is required" });
     }
 
@@ -141,9 +141,9 @@ export const updateUserInfo = async (req, res) => {
     const updates = [];
     if (phone) updates.push(`phone = '${phone}'`);
     if (address) updates.push(`address = '${address}'`);
-    if (profilepictureurl) updates.push(`profilepictureurl = '${profilepictureurl}'`);
+    if (username) updates.push(`username = '${username}'`);
 
-    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $1 RETURNING id, email, phone, address, profilepictureurl`;
+    const query = `UPDATE users SET ${updates.join(', ')} WHERE id = $1 RETURNING id, username, email, phone, address`;
     const { rows } = await pool.query(query, [id]);
 
     res.status(200).json(rows[0]);
@@ -152,6 +152,7 @@ export const updateUserInfo = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
 
 export const loginUser = async (req, res) => {
   try {
