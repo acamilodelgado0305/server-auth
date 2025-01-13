@@ -276,3 +276,26 @@ export const deleteUser = async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 };
+
+export const updateProfilePicture = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { profilepictureurl } = req.body;
+
+    if (!profilepictureurl) {
+      return res.status(400).json({ message: "No se proporcionó la URL de la imagen" });
+    }
+
+    const query = "UPDATE users SET profilepictureurl = $1 WHERE id = $2 RETURNING id, profilepictureurl";
+    const { rows } = await pool.query(query, [profilepictureurl, id]);
+
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    res.status(200).json(rows[0]);
+  } catch (error) {
+    console.error("Error al actualizar la imagen del usuario:", error);
+    res.status(500).json({ message: "Error interno del servidor" });
+  }
+};

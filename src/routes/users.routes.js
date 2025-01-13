@@ -8,7 +8,8 @@ import {
   updateUser,
   deleteUser,
   updateUserInfo,
-  getToken
+  getToken,
+  updateProfilePicture,
 } from "../controllers/index.controller.js";
 import { uploadImageToCloudinary } from "../controllers/image.controller.js";
 import { authenticateToken } from "../middlewares/authenticateToken.js";
@@ -29,5 +30,5 @@ router.post('/upload-image', upload.single('image'), uploadImageToCloudinary);
 router.put("/users/:id", authenticateToken, updateUser);
 router.put('/update-info/:id', authenticateToken, updateUserInfo);
 router.delete("/users/:id", authenticateToken, deleteUser);
-
+router.put('/:id/profile-picture', updateProfilePicture);
 export default router;
