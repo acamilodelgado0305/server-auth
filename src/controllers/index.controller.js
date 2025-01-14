@@ -299,3 +299,39 @@ export const updateProfilePicture = async (req, res) => {
     res.status(500).json({ message: "Error interno del servidor" });
   }
 };
+
+export const changePassword = async (req, res) => {
+  try {
+    const { id } = req.params; // ID del usuario
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ message: "Both current and new passwords are required" });
+    }
+
+    // Verificar si el usuario existe
+    const { rows } = await pool.query("SELECT password FROM users WHERE id = $1", [id]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = rows[0];
+
+    // Comparar la contraseña actual
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect" });
+    }
+
+    // Hashear la nueva contraseña
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Actualizar la contraseña en la base de datos
+    await pool.query("UPDATE users SET password = $1 WHERE id = $2", [hashedPassword, id]);
+
+    res.status(200).json({ message: "Password updated successfully" });
+  } catch (error) {
+    console.error("Error changing password:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

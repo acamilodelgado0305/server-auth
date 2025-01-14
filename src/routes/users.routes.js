@@ -10,6 +10,8 @@ import {
   updateUserInfo,
   getToken,
   updateProfilePicture,
+  changePassword
+
 } from "../controllers/index.controller.js";
 import { uploadImageToCloudinary } from "../controllers/image.controller.js";
 import { authenticateToken } from "../middlewares/authenticateToken.js";
@@ -26,9 +28,11 @@ router.post("/login", loginUser);
 router.get("/users/:id/token", getToken);
 router.post('/upload-image', upload.single('image'), uploadImageToCloudinary);
 
+
 // Rutas protegidas por el middleware de autenticación
 router.put("/users/:id", authenticateToken, updateUser);
 router.put('/update-info/:id', authenticateToken, updateUserInfo);
 router.delete("/users/:id", authenticateToken, deleteUser);
 router.put('/:id/profile-picture', updateProfilePicture);
+router.put('/users/:id/change-password', authenticateToken, changePassword);
 export default router;
