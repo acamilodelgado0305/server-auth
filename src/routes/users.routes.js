@@ -10,7 +10,9 @@ import {
   updateUserInfo,
   getToken,
   updateProfilePicture,
-  changePassword
+  changePassword,
+  forgotPassword,
+  resetPassword
 
 } from "../controllers/index.controller.js";
 import { uploadImageToCloudinary } from "../controllers/image.controller.js";
@@ -27,6 +29,8 @@ router.post("/register", createUser);
 router.post("/login", loginUser);
 router.get("/users/:id/token", getToken);
 router.post('/upload-image', upload.single('image'), uploadImageToCloudinary);
+router.post("/forgot-password", forgotPassword);
+router.post("/reset-password", resetPassword);
 
 
 // Rutas protegidas por el middleware de autenticación
