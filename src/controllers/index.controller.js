@@ -335,3 +335,79 @@ export const changePassword = async (req, res) => {
     res.status(500).json({ message: "Internal server error" });
   }
 };
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const { rows } = await pool.query("SELECT id, email, username FROM users WHERE email = $1", [email]);
+    if (rows.length === 0) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const user = rows[0];
+    const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "1h" });
+
+    // Guardar token temporalmente en la base de datos
+    await pool.query("UPDATE users SET reset_token = $1 WHERE id = $2", [token, user.id]);
+
+    // Enviar correo de recuperación
+    const transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
+
+    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const emailTemplatePath = path.join(__dirname, "../templates/resetPasswordEmailTemplate.html");
+    const emailHtml = renderTemplate(emailTemplatePath, { username: user.username, resetLink });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: user.email,
+      subject: "Password Recovery",
+      html: emailHtml,
+    });
+
+    res.status(200).json({ message: "Password reset email sent" });
+  } catch (error) {
+    console.error("Error in forgotPassword:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ message: "Token and new password are required" });
+    }
+
+    // Verificar token
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const { id } = decoded;
+
+    // Verificar si el token coincide en la base de datos
+    const { rows } = await pool.query("SELECT reset_token FROM users WHERE id = $1", [id]);
+    if (rows.length === 0 || rows[0].reset_token !== token) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    // Hashear la nueva contraseña
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    // Actualizar la contraseña y limpiar el token
+    await pool.query("UPDATE users SET password = $1, reset_token = NULL WHERE id = $2", [hashedPassword, id]);
+
+    res.status(200).json({ message: "Password reset successfully" });
+  } catch (error) {
+    console.error("Error in resetPassword:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
