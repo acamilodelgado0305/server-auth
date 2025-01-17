@@ -363,7 +363,7 @@ export const forgotPassword = async (req, res) => {
       },
     });
 
-    const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const resetLink = `https://ispsuite.app.la-net.co/reset-password?token=${token}`;
     const emailTemplatePath = path.join(__dirname, "../templates/resetPasswordEmailTemplate.html");
     const emailHtml = renderTemplate(emailTemplatePath, { username: user.username, resetLink });
 
