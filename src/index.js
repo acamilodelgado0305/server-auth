@@ -48,7 +48,6 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('Cliente desconectado:', socket.id);
     });
-
     // Emitir una notificación de bienvenida al usuario cuando se conecta
     socket.emit('notification', { message: 'Bienvenido a la aplicación..!' });
 
