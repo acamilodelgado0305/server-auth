@@ -172,7 +172,7 @@ export const loginUser = async (req, res) => {
     const token = jwt.sign(
       { id: user.id, email: user.email, role: user.role },
       JWT_SECRET,
-      { expiresIn: "48h" }  // Token expira después de 48 horas
+      { expiresIn: "1h" }  // Token expira después de 48 horas
     );
 
     // Guardar el token en la base de datos
