@@ -21,6 +21,7 @@ app.use(cors({
     credentials: true,
 }));
 
+app.use('/uploads', express.static(join(__dirname, 'uploads')));
 // Servir archivos estáticos desde un directorio específico, si es necesario
 app.use(express.static(join(__dirname, 'public')));
 
