@@ -35,33 +35,32 @@ export const uploadImageToCloudinary = async (req, res) => {
 };
 
 
-// Configuración de multer para recibir archivos
+// Configuración de Multer para recibir archivos
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, 'uploads/');  // Asegúrate de que esta carpeta exista
+        // Aquí aseguramos que la carpeta 'uploads' exista
+        const uploadDir = 'uploads/';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir);
+        }
+        cb(null, uploadDir);  // Especificamos la carpeta donde se almacenarán los archivos
     },
     filename: (req, file, cb) => {
-        cb(null, `${Date.now()}-${file.originalname}`);
+        cb(null, `${Date.now()}-${file.originalname}`);  // Generamos un nombre único para cada archivo
     }
 });
 
+// Inicialización del middleware Multer con la configuración anterior
 const upload = multer({ storage });
 
+// Middleware para recibir un solo archivo
+export const uploadFileToServer = upload.single('myFile');  // 'myFile' es el campo que enviará el cliente
 
-export const uploadFileToServer = async (req, res) => {
-    try {
-        if (!req.file) {
-            return res.status(400).json({ message: 'No file uploaded' });
-        }
-
-        // Aquí procesas el archivo
-        const filePath = path.join(__dirname, 'uploads', req.file.filename);
-
-        // Devuelves la URL del archivo subido
-        const fileUrl = `${process.env.BASE_URL}/uploads/${req.file.filename}`;
-        return res.status(200).json({ fileUrl });
-    } catch (error) {
-        console.error('Error uploading file:', error);
-        return res.status(500).json({ message: 'Error interno del servidor' });
+export const uploadFile = (req, res) => {
+    if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
     }
+    // Aquí podrías hacer algo con el archivo, como almacenarlo en base de datos, etc.
+    const fileUrl = `${process.env.BASE_URL}/uploads/${req.file.filename}`;  // Generamos la URL del archivo
+    res.status(200).json({ fileUrl });
 };

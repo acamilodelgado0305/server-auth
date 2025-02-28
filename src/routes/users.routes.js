@@ -16,7 +16,7 @@ import {
 
 } from "../controllers/index.controller.js";
 //import { uploadImageToCloudinary } from "../controllers/image.controller.js";
-import { uploadFileToServer } from "../controllers/image.controller.js";
+import { uploadFileToServer, uploadFile } from "../controllers/image.controller.js";
 import { authenticateToken } from "../middlewares/authenticateToken.js";
 
 const router = Router();
@@ -30,7 +30,13 @@ router.post("/register", createUser);
 router.post("/login", loginUser);
 router.get("/users/:id/token", getToken);
 //router.post('/upload-image', upload.single('image'), uploadImageToCloudinary);
-router.post('/upload-file', upload.single('file'), uploadFileToServer);
+router.post(
+  '/upload-file',
+  //requireAuth,     
+  uploadFileToServer,
+  uploadFile
+);
+
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
