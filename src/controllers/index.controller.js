@@ -209,7 +209,7 @@ export const updateUser = async (req, res) => {
     const { username, email, role, password } = req.body;
 
     // Verificar si el role está presente y es válido (opcional)
-    const validRoles = ["superadmin", "admin", "user"];
+    const validRoles = ["superadmin", "cajero", "usuario", "tecnico"];
     if (role && !validRoles.includes(role)) {
       return res.status(400).json({ message: "Invalid role provided" });
     }
