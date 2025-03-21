@@ -1,10 +1,11 @@
+// server.js
 import express from 'express';
 import dotenv from 'dotenv';
 import router from './routes/users.routes.js';
-import cors from 'cors'; // Importa cors de manera consistente con ES6
+import cors from 'cors';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
-import { Server } from 'socket.io'; // Importa Socket.io
+import { createSocketServer } from './socket.js';
 
 dotenv.config();
 
@@ -32,25 +33,5 @@ const server = app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
 
-// Crear una instancia de Socket.io y asociarla al servidor
-export const io = new Server(server, {
-    cors: {
-        origin: ['http://localhost:5173', 'https://ispsuite.app.la-net.co'],
-        methods: ['GET', 'POST'],
-        credentials: true,
-    }
-});
-
-// Escuchar conexiones de Socket.io
-io.on('connection', (socket) => {
-    console.log('Nuevo cliente conectado:', socket.id);
-
-    // Aquí puedes manejar eventos de Socket.io
-    socket.on('disconnect', () => {
-        console.log('Cliente desconectado:', socket.id);
-    });
-    // Emitir una notificación de bienvenida al usuario cuando se conecta
-    socket.emit('notification', { message: 'Bienvenido a la aplicación..!' });
-
-    // Puedes agregar más eventos según tus necesidades
-});
+// Llama a la función para crear la instancia de Socket.io
+createSocketServer(server);
