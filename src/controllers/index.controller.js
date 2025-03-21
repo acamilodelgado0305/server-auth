@@ -48,7 +48,7 @@ export const getUserById = async (req, res) => {
   try {
     const id = parseInt(req.params.id);
     const response = await pool.query(
-      "SELECT id, username, email, address, phone, profilepictureurl FROM users WHERE id = $1",
+      "SELECT id, username, email, address, phone, profilepictureurl, app FROM users WHERE id = $1",
       [id]
     );
     if (response.rows.length === 0) {
