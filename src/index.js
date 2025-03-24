@@ -1,37 +1,26 @@
-// server.js
 import express from 'express';
-import dotenv from 'dotenv';
-import router from './routes/users.routes.js';
-import cors from 'cors';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { createSocketServer } from './socket.js';
-
-dotenv.config();
+import http from 'http';
+import { createSocketServer } from './socket.js';  // Importamos la función de socket
+import userRoutes from './routes/users.routes.js';  // Asegúrate de que esta ruta exista
+import notificationsRoutes from './routes/notifications.routes.js';  // Asegúrate de que esta ruta exista
 
 const app = express();
-app.use(express.json());
+const server = http.createServer(app);  // Crea el servidor HTTP
 
-// Obtener __filename y __dirname en ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+// Middleware para parsear el cuerpo de las peticiones JSON
+app.use(express.json());  // Asegúrate de que Express pueda procesar el cuerpo de la solicitud como JSON
 
-// Configura CORS antes de tus rutas
-app.use(cors({
-    origin: ['http://localhost:5173', 'https://ispsuite.app.la-net.co', 'https://ispsuitedev.app.la-net.co'],
-    credentials: true,
-}));
+// Inicia el servidor de WebSocket
+const io = createSocketServer(server);  // Guarda la instancia de io
 
-app.use('/uploads', express.static(join(__dirname, '../uploads')));
-// Servir archivos estáticos desde un directorio específico, si es necesario
-app.use(express.static(join(__dirname, 'public')));
+// Usamos las rutas de usuarios y notificaciones
+app.use('/api/users', userRoutes);  // Rutas para manejar usuarios
+app.use('/api/notifications', notificationsRoutes);  // Rutas para manejar notificaciones
 
-app.use('/api', router);
-
-const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+// Inicia el servidor HTTP
+server.listen(3000, () => {
+    console.log('Servidor en ejecución en el puerto 3000');
 });
 
-// Llama a la función para crear la instancia de Socket.io
-createSocketServer(server);
+// Exportar io para usarlo en otros archivos
+export { io };
