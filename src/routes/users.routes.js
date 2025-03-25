@@ -40,8 +40,6 @@ router.post(
 router.post("/forgot-password", forgotPassword);
 router.post("/reset-password", resetPassword);
 
-
-// Rutas protegidas por el middleware de autenticación
 router.put("/users/:id", authenticateToken, updateUser);
 router.put('/update-info/:id', authenticateToken, updateUserInfo);
 router.delete("/users/:id", authenticateToken, deleteUser);
