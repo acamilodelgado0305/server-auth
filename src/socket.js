@@ -3,7 +3,7 @@ import { Server } from 'socket.io'; // Importa Socket.io
 export const createSocketServer = (server) => {
     const io = new Server(server, {
         cors: {
-            origin: ['http://localhost:5173', 'https://ispsuite.app.la-net.co'], // Ajusta el origen de las conexiones permitidas
+            origin: ['http://localhost:5173', 'https://ispsuite.app.la-net.co'],
             methods: ['GET', 'POST'],
             credentials: true,
         }
@@ -15,7 +15,7 @@ export const createSocketServer = (server) => {
     io.on('connection', (socket) => {
         console.log('Nuevo cliente conectado:', socket.id);
 
-        // Registrar el usuario con su socket.id (lo haces cuando el cliente se conecta)
+        // Registrar el usuario con su socket.id
         socket.on('registerUser', (userId) => {
             users[userId] = socket.id;
             console.log(`Usuario ${userId} registrado con socket ID ${socket.id}`);
@@ -24,7 +24,7 @@ export const createSocketServer = (server) => {
         // Manejar desconexión
         socket.on('disconnect', () => {
             console.log('Cliente desconectado:', socket.id);
-            // Eliminar al usuario de la lista de usuarios registrados cuando se desconecte
+            // Eliminar al usuario de la lista de usuarios registrados
             for (let userId in users) {
                 if (users[userId] === socket.id) {
                     delete users[userId];
@@ -39,15 +39,15 @@ export const createSocketServer = (server) => {
 
         // Evento para enviar mensaje e imagen al usuario
         socket.on('sendInvoiceMessage', ({ userId, message, imageUrl }) => {
-            const recipientSocketId = users[userId]; // Buscar el socket del usuario por su userId
+            const recipientSocketId = users[userId];
             if (recipientSocketId) {
-                io.to(recipientSocketId).emit('invoiceMessage', { // Emitir mensaje al socket del usuario
+                io.to(recipientSocketId).emit('invoiceMessage', {
                     message: message,
                     image: imageUrl
                 });
-                console.log(`Factura enviada a ${userId}: ${message}`);
+                console.log('Factura enviada a', userId);
             } else {
-                console.log(`Usuario ${userId} no está conectado.`);
+                console.log('Usuario no conectado:', userId);
             }
         });
     });
