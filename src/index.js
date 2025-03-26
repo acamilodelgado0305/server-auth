@@ -1,56 +1,44 @@
 import express from 'express';
+import http from 'http';
 import dotenv from 'dotenv';
-import router from './routes/users.routes.js';
-import cors from 'cors'; // Importa cors de manera consistente con ES6
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { Server } from 'socket.io'; // Importa Socket.io
+import cors from 'cors';
+import userRoutes from './routes/users.routes.js';
+import notificationsRoutes from './routes/notifications.routes.js';
+import { createSocketServer } from './socket.js';
 
 dotenv.config();
 
 const app = express();
+
+// Middleware para parsear el cuerpo de las peticiones JSON
 app.use(express.json());
 
-// Obtener __filename y __dirname en ES Modules
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
-
-// Configura CORS antes de tus rutas
+// Configuración de CORS (para aceptar peticiones de tu frontend)
 app.use(cors({
     origin: ['http://localhost:5173', 'https://ispsuite.app.la-net.co', 'https://ispsuitedev.app.la-net.co'],
     credentials: true,
 }));
 
-app.use('/uploads', express.static(join(__dirname, '../uploads')));
-// Servir archivos estáticos desde un directorio específico, si es necesario
-app.use(express.static(join(__dirname, 'public')));
+// Usamos las rutas de usuarios y notificaciones
+app.use('/api/', userRoutes);
+app.use('/api/notifications', notificationsRoutes);
 
-app.use('/api', router);
+// Servir archivos estáticos si es necesario
+// Asegúrate de configurar correctamente el directorio de archivos estáticos si lo necesitas
+app.use('/uploads', express.static('uploads'));
+app.use(express.static('public'));
 
+// Crear el servidor HTTP
+const server = http.createServer(app);
+
+// Crear la instancia de Socket.io usando la función 'createSocketServer' y asociarla al servidor HTTP
+const io = createSocketServer(server);
+
+// Inicia el servidor HTTP
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+server.listen(PORT, () => {
+    console.log(`Servidor en ejecución en el puerto ${PORT}`);
 });
 
-// Crear una instancia de Socket.io y asociarla al servidor
-export const io = new Server(server, {
-    cors: {
-        origin: ['http://localhost:5173', 'https://ispsuite.app.la-net.co'],
-        methods: ['GET', 'POST'],
-        credentials: true,
-    }
-});
-
-// Escuchar conexiones de Socket.io
-io.on('connection', (socket) => {
-    console.log('Nuevo cliente conectado:', socket.id);
-
-    // Aquí puedes manejar eventos de Socket.io
-    socket.on('disconnect', () => {
-        console.log('Cliente desconectado:', socket.id);
-    });
-    // Emitir una notificación de bienvenida al usuario cuando se conecta
-    socket.emit('notification', { message: 'Bienvenido a la aplicación..!' });
-
-    // Puedes agregar más eventos según tus necesidades
-});
+// Exportar la instancia de io para usarla en otros archivos si es necesario
+export { io };
